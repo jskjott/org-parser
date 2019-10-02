@@ -1,0 +1,15 @@
+[package]
+name = "org_parser"
+version = "0.1.0"
+authors = ["jskjott <jonathan@jskjott.com>"]
+edition = "2018"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = { version = "0.2.11", features = ["serde-serialize"] }
+serde = "^1.0.59"
+serde_derive = "^1.0.59"
+wasm-bindgen-test = "0.2"
+wasm-bindgen-cli = "0.2.51"
