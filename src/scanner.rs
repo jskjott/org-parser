@@ -1,21 +1,24 @@
 extern crate wasm_bindgen;
+use regex::Regex;
 use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum TokenType {
     // Repeat-character tokens.
-    Star,
+    Asterisk,
 
     // Literals.
     String,
+    Bold,
 
     // Keywords.
     Title,
     Author,
-    Date,
+    InitiationDate,
     LogBook,
     Clock,
     End,
+    Date,
     Scheduled,
     Deadline,
     Todo,
@@ -73,7 +76,8 @@ impl Scanner {
         let c: char = self.advance();
 
         match c {
-            '*' => self.parse_title(),
+            '*' => self.asterisk(),
+            '<' => self.angle_bracket(),
             ' ' => (),
             '\r' => (),
             '\t' => (),
@@ -82,24 +86,69 @@ impl Scanner {
                 if is_alpha(c) {
                     self.identifier();
                 } else {
-                    panic!(format!("{:?}, Unexpected character", self.line));
+                    panic!(format!("line {:?}, Unexpected character", self.line));
                 }
             }
         }
     }
 
-    fn parse_title(&mut self) {
-        while self.peek() == '*' {
+    fn asterisk(&mut self) {
+        while is_alpha(self.peek()) | self.peek().is_alphanumeric() {
             self.advance();
         }
 
         let text: String = self.source[self.start..self.current].to_string();
 
+        let star_only = Regex::new(r"^[*]*$").unwrap();
+        let bold = Regex::new(r"^[*].*[*]$").unwrap();
+
+        let token_type: TokenType;
+
+        if star_only.is_match(&text) {
+            token_type = TokenType::Asterisk
+        } else if bold.is_match(&text) {
+            token_type = TokenType::Bold
+        } else {
+            token_type = TokenType::String
+        };
+
         self.tokens.push(Token {
-            token_type: TokenType::Star,
+            token_type: token_type,
             lexeme: text,
             line: self.line,
         })
+    }
+
+    fn angle_bracket(&mut self) {
+        while is_alpha(self.peek()) | self.peek().is_alphanumeric() {
+            self.advance();
+        }
+
+        let text: String = self.source[self.start..self.current].to_string();
+
+        let date_format = Regex::new(r"^<\d{4}-\d{2}-\d{2}$").unwrap();
+
+        if !date_format.is_match(&text) {
+            self.tokens.push(Token {
+                token_type: TokenType::String,
+                lexeme: text,
+                line: self.line,
+            });
+        } else {
+            while '>' != self.peek() {
+                self.advance();
+            }
+
+            self.advance();
+
+            let text: String = self.source[self.start..self.current].to_string();
+
+            self.tokens.push(Token {
+                token_type: TokenType::Date,
+                lexeme: text,
+                line: self.line,
+            });
+        }
     }
 
     fn is_at_end(&self) -> bool {
@@ -141,7 +190,7 @@ impl Scanner {
 
         keywords.insert("#+TITLE".to_string(), TokenType::Title);
         keywords.insert("#+AUTHOR".to_string(), TokenType::Author);
-        keywords.insert("#+DATE".to_string(), TokenType::Date);
+        keywords.insert("#+DATE".to_string(), TokenType::InitiationDate);
         keywords.insert(":LOGBOOK:".to_string(), TokenType::LogBook);
         keywords.insert("CLOCK:".to_string(), TokenType::Clock);
         keywords.insert(":END:".to_string(), TokenType::End);
@@ -164,5 +213,12 @@ impl Scanner {
 }
 
 fn is_alpha(c: char) -> bool {
-    c.is_alphabetic() || c == ':' || c == '#' || c == '+' || c == '*' || c == '_'
+    c.is_alphabetic()
+        || c == ':'
+        || c == '#'
+        || c == '+'
+        || c == '*'
+        || c == '_'
+        || c == '-'
+        || c == '.'
 }

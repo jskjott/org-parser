@@ -50,7 +50,7 @@ mod tests {
 
         let expected = vec![
             Token {
-                token_type: TokenType::Star,
+                token_type: TokenType::Asterisk,
                 lexeme: "***".to_string(),
                 line: 1,
             },
@@ -70,12 +70,52 @@ mod tests {
     }
 
     #[test]
+    fn date() {
+        let result = scanner::scan("<2019-09-25 Wed>".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Date,
+                lexeme: "<2019-09-25 Wed>".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn bold() {
+        let result = scanner::scan("*hotdogs*".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Bold,
+                lexeme: "*hotdogs*".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn multi_line() {
         let result = scanner::scan("** TODO Futurice \n *** brainstorming ".to_string());
 
         let expected = vec![
             Token {
-                token_type: TokenType::Star,
+                token_type: TokenType::Asterisk,
                 lexeme: "**".to_string(),
                 line: 1,
             },
@@ -90,7 +130,7 @@ mod tests {
                 line: 1,
             },
             Token {
-                token_type: TokenType::Star,
+                token_type: TokenType::Asterisk,
                 lexeme: "***".to_string(),
                 line: 2,
             },
