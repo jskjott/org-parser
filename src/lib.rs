@@ -110,6 +110,200 @@ mod tests {
     }
 
     #[test]
+    fn timestamp() {
+        let result = scanner::scan("[2019-09-19 Thu 10:40]".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Timestamp,
+                lexeme: "[2019-09-19 Thu 10:40]".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn link() {
+        let result = scanner::scan(
+            "[[https://orgmode.org/worg/dev/org-syntax.html][org-mode syntax]]".to_string(),
+        );
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Link,
+                lexeme: "[[https://orgmode.org/worg/dev/org-syntax.html][org-mode syntax]]"
+                    .to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn italic() {
+        let result = scanner::scan("/italic/".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Italic,
+                lexeme: "/italic/".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn underline() {
+        let result = scanner::scan("_underline_".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Underline,
+                lexeme: "_underline_".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn strikethrough() {
+        let result = scanner::scan("+strikethrough+".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Strikethrough,
+                lexeme: "+strikethrough+".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn logbook() {
+        let result = scanner::scan(
+            ":LOGBOOK:
+    CLOCK: [2019-09-21 Sat 17:11]--[2019-09-21 Sat 18:24] =>  1:13
+    CLOCK: [2019-09-21 Sat 16:26]--[2019-09-21 Sat 16:58] =>  0:32
+    :END:"
+                .to_string(),
+        );
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::LogBook,
+                lexeme: ":LOGBOOK:".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::Clock,
+                lexeme: "CLOCK:".to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::Timestamp,
+                lexeme: "[2019-09-21 Sat 17:11]".to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::String,
+                lexeme: "--".to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::Timestamp,
+                lexeme: "[2019-09-21 Sat 18:24]".to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::String,
+                lexeme: "=>".to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::Duration,
+                lexeme: "1:13".to_string(),
+                line: 2,
+            },
+            Token {
+                token_type: TokenType::Clock,
+                lexeme: "CLOCK:".to_string(),
+                line: 3,
+            },
+            Token {
+                token_type: TokenType::Timestamp,
+                lexeme: "[2019-09-21 Sat 16:26]".to_string(),
+                line: 3,
+            },
+            Token {
+                token_type: TokenType::String,
+                lexeme: "--".to_string(),
+                line: 3,
+            },
+            Token {
+                token_type: TokenType::Timestamp,
+                lexeme: "[2019-09-21 Sat 16:58]".to_string(),
+                line: 3,
+            },
+            Token {
+                token_type: TokenType::String,
+                lexeme: "=>".to_string(),
+                line: 3,
+            },
+            Token {
+                token_type: TokenType::Duration,
+                lexeme: "0:32".to_string(),
+                line: 3,
+            },
+            Token {
+                token_type: TokenType::End,
+                lexeme: ":END:".to_string(),
+                line: 4,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 4,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
     fn multi_line() {
         let result = scanner::scan("** TODO Futurice \n *** brainstorming ".to_string());
 
