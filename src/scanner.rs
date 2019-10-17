@@ -34,7 +34,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Token {
     pub token_type: TokenType,
     pub lexeme: String,
@@ -49,7 +49,7 @@ pub fn scan(source: String) -> Vec<Token> {
         current: 0,
         line: 1,
     }
-    .scan_tokens()
+    .scan_source()
 }
 
 struct Scanner {
@@ -61,7 +61,7 @@ struct Scanner {
 }
 
 impl Scanner {
-    fn scan_tokens(mut self) -> Vec<Token> {
+    fn scan_source(mut self) -> Vec<Token> {
         while !self.is_at_end() {
             {
                 self.start = self.current;
@@ -340,9 +340,9 @@ impl Scanner {
 
         let mut keywords = HashMap::new();
 
-        keywords.insert("#+TITLE".to_string(), TokenType::Title);
-        keywords.insert("#+AUTHOR".to_string(), TokenType::Author);
-        keywords.insert("#+DATE".to_string(), TokenType::InitiationDate);
+        keywords.insert("#+TITLE:".to_string(), TokenType::Title);
+        keywords.insert("#+AUTHOR:".to_string(), TokenType::Author);
+        keywords.insert("#+DATE:".to_string(), TokenType::InitiationDate);
         keywords.insert(":LOGBOOK:".to_string(), TokenType::LogBook);
         keywords.insert("CLOCK:".to_string(), TokenType::Clock);
         keywords.insert(":END:".to_string(), TokenType::End);
@@ -373,7 +373,15 @@ fn is_alpha(c: char) -> bool {
         || c == '_'
         || c == '-'
         || c == '.'
+        || c == ','
         || c == '/'
         || c == '='
         || c == '>'
+        || c == '~'
+        || c == '^'
+        || c == '?'
+        || c == '!'
+        || c == '\u{27}'
+        || c == '('
+        || c == ')'
 }

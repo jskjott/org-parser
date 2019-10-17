@@ -1,3 +1,4 @@
+mod parser;
 mod scanner;
 
 #[macro_use]
@@ -9,24 +10,29 @@ use wasm_bindgen::prelude::*;
 pub fn parse(input: &str) -> JsValue {
     let result = scanner::scan(input.to_string());
 
+    let result = parser::parse(result);
+
     JsValue::from_serde(&result).unwrap()
 }
 
 #[cfg(test)]
 mod tests {
 
+    use crate::parser;
+    use crate::parser::Node;
     use crate::scanner;
     use crate::scanner::Token;
     use crate::scanner::TokenType;
+    use std::collections::HashMap;
 
     #[test]
     fn doc_title() {
-        let result = scanner::scan("#+TITLE LifeRepo".to_string());
+        let result = scanner::scan("#+TITLE: LifeRepo".to_string());
 
         let expected = vec![
             Token {
                 token_type: TokenType::Title,
-                lexeme: "#+TITLE".to_string(),
+                lexeme: "#+TITLE:".to_string(),
                 line: 1,
             },
             Token {
@@ -200,6 +206,31 @@ mod tests {
             Token {
                 token_type: TokenType::Strikethrough,
                 lexeme: "+strikethrough+".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::EOF,
+                lexeme: "".to_string(),
+                line: 1,
+            },
+        ];
+
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn underlined_title() {
+        let result = scanner::scan("*** _Agenda_".to_string());
+
+        let expected = vec![
+            Token {
+                token_type: TokenType::Asterisk,
+                lexeme: "***".to_string(),
+                line: 1,
+            },
+            Token {
+                token_type: TokenType::Underline,
+                lexeme: "_Agenda_".to_string(),
                 line: 1,
             },
             Token {
